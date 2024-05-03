@@ -1,0 +1,66 @@
+version: '3'
+services:
+  service-registry:
+    build: ./discovery-service
+    container_name: discovery-service
+    ports:
+      - '8761:8761'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8761/actuator/health" ]
+      interval: 10s
+      retries: 4
+
+  config-service:
+    build: ./config-service
+    container_name: config-service
+    ports:
+      - '9999:9999'
+    expose:
+      - '9999'
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9999/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      service-registry:
+        condition: service_healthy
+
+  postgres:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER : postgres
+      POSTGRES_PASSWORD : admin
+      POSTGRES_DB : accounts-service
+    container_name: postgres
+
+  account_management-service:
+    build:
+      context: ./account_management-service
+    container_name: account_management-service
+    ports:
+      - "8085:8085"
+    environment:
+      - DISCOVERY_SERVICE_URL=http://discovery-service:8761/eureka
+      - CONFIG_SERVICE_URL=http://config-service:9999
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/accounts-service
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=admin
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8085/actuator/health" ]
+      interval: 10s
+      retries: 4
+    depends_on:
+      - config-service
+      - postgres
+
+
+volumes:
+  gdata:
+
+
+
+
