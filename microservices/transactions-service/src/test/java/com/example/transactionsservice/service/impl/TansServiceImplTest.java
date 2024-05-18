@@ -2,6 +2,7 @@ package com.example.transactionsservice.service.impl;
 
 import com.example.transactionsservice.dto.UpdateBalanceRequest;
 import com.example.transactionsservice.feign.AccountInterface;
+import com.example.transactionsservice.feign.NotifInterface;
 import com.example.transactionsservice.repository.OperaRepository;
 import com.example.transactionsservice.repository.TransRepository;
 import com.example.transactionsservice.service.TransService;
@@ -27,10 +28,11 @@ class TansServiceImplTest {
     private TransRepository transRepository;
     @Mock
     private AccountInterface accountInterface;
+    private NotifInterface notifInterface;
 
     @BeforeEach
     public void setup(){
-        transService = new TansServiceImpl(transRepository,operaRepository,accountInterface);
+        transService = new TansServiceImpl(transRepository,operaRepository,accountInterface,notifInterface);
     }
 
     @Test

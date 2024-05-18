@@ -6,6 +6,7 @@ import com.example.authservice.dto.SignupRequest;
 import com.example.authservice.exception.AuthenticationFailedException;
 import com.example.authservice.exception.EmailAlreadyExistsException;
 import com.example.authservice.exception.InvalidEmailException;
+import com.example.authservice.feign.NotifInterface;
 import com.example.authservice.model.Client;
 import com.example.authservice.model.Role;
 import com.example.authservice.repository.ClientRepository;
@@ -43,6 +44,9 @@ class AuthServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
+    @Mock
+    private NotifInterface notifInterface;
+
 
     @BeforeEach
     void setup(){
@@ -50,7 +54,8 @@ class AuthServiceTest {
                 jwtService,
                 clientRepository,
                 authenticationManager,
-                passwordEncoder);
+                passwordEncoder,
+                notifInterface);
     }
 
     @Test

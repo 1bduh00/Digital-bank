@@ -1,0 +1,17 @@
+version: '3'
+services:
+  postgres:
+    image: postgres
+    ports:
+      - "5445:5432"
+    environment:
+      POSTGRES_USER : postgres
+      POSTGRES_PASSWORD : admin
+      POSTGRES_DB : notification-service
+    container_name: postgres-notification
+
+
+
+
+
+

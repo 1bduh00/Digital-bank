@@ -1,5 +1,6 @@
 package com.example.authservice.service.impl;
 
+import com.example.authservice.model.Client;
 import com.example.authservice.service.JwtService;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ public class JwtServiceImpl implements JwtService {
         // TODO Auto-generated method stub
         long validityInMilliseconds = 360000 * 24;
         extraClaims.put("role", userDetails.getAuthorities());
+        extraClaims.put("name", ((Client) userDetails).getFullName());
         return Jwts
                 .builder()
                 .setClaims(extraClaims)

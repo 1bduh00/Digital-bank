@@ -15,7 +15,7 @@ public class Account {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_sequence")
-    @SequenceGenerator(name = "account_sequence", sequenceName = "account_sequence", allocationSize = 1)
+    @SequenceGenerator(name = "account_sequence", sequenceName = "account_sequence",initialValue = 18759632, allocationSize = 1)
     private Long account_nb;
 
     private double balance;

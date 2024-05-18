@@ -1,11 +1,10 @@
 package com.example.transactionsservice.service.impl;
 
+import com.example.transactionsservice.dto.NotifRequest;
 import com.example.transactionsservice.dto.UpdateBalanceRequest;
-import com.example.transactionsservice.exception.AccountNotFoundException;
-import com.example.transactionsservice.exception.EmptyBodyException;
-import com.example.transactionsservice.exception.InsufficientBalanceException;
-import com.example.transactionsservice.exception.UpdatingBalanceException;
+import com.example.transactionsservice.exception.*;
 import com.example.transactionsservice.feign.AccountInterface;
+import com.example.transactionsservice.feign.NotifInterface;
 import com.example.transactionsservice.model.Operation;
 import com.example.transactionsservice.model.Transfer;
 import com.example.transactionsservice.model.Type;
@@ -24,12 +23,15 @@ import java.util.List;
 public class TansServiceImpl implements TransService {
 
     private TransRepository transRepository;
+
     private OperaRepository operaRepository;
+
     private AccountInterface accountInterface;
 
+    private NotifInterface notifInterface;
 
     @Override
-    public void credit(Long accountNb, double amount) throws UpdatingBalanceException, EmptyBodyException, AccountNotFoundException {
+    public void credit(Long accountNb, double amount , String phone ) throws UpdatingBalanceException, EmptyBodyException, AccountNotFoundException, MessageSendingException {
         boolean resp = this.incrementBalance(accountNb,amount);
         if(resp){
             // if the update is successful than add the trans to the database
@@ -39,14 +41,20 @@ public class TansServiceImpl implements TransService {
             operation.setOperation_date(new Date());
             operation.setType(Type.CREDIT);
 
-            operaRepository.save(operation);
+            operation = operaRepository.save(operation);
+            String notificationMessage = "Your recent transaction was successful:\\n" +
+                    "🔹 TYPE: CREDIT \\n" +
+                    "🔹 Date: " + operation.getOperation_date() + "\\n" +
+                    "🔹 Amount: " + operation.getAmount();
+
+            sendNotification(phone,notificationMessage);
         }else{
             throw new UpdatingBalanceException("the process of updating account balance not completed");
         }
     }
 
     @Override
-    public void debit(Long accountNb, double amount) throws InsufficientBalanceException, AccountNotFoundException, UpdatingBalanceException {
+    public void debit(Long accountNb, double amount , String phone ) throws InsufficientBalanceException, AccountNotFoundException, UpdatingBalanceException, MessageSendingException {
 
         boolean resp = this.decrementBalance(accountNb,amount);
         if(resp){
@@ -57,14 +65,20 @@ public class TansServiceImpl implements TransService {
             operation.setOperation_date(new Date());
             operation.setType(Type.DEBIT);
 
-            operaRepository.save(operation);
+            operation = operaRepository.save(operation);
+            String notificationMessage = "Your recent transaction was successful:\\n" +
+                    "🔹 TYPE: DEBIT \\n" +
+                    "🔹 Date: " + operation.getOperation_date() + "\\n" +
+                    "🔹 Amount: " + operation.getAmount();
+
+            sendNotification(phone,notificationMessage);
         }else{
             throw new UpdatingBalanceException("the process of updating account balance not completed");
         }
     }
 
     @Override
-    public void transfer(Long sender, Long recipient, double amount) throws EmptyBodyException, AccountNotFoundException, InsufficientBalanceException, UpdatingBalanceException {
+    public void transfer(Long sender, Long recipient, double amount, String phone ) throws EmptyBodyException, AccountNotFoundException, InsufficientBalanceException, UpdatingBalanceException, MessageSendingException {
         boolean resp1 = incrementBalance(recipient,amount);
         boolean resp2 = decrementBalance(sender,amount);
 
@@ -76,7 +90,15 @@ public class TansServiceImpl implements TransService {
             transfer.setRecipient_acc(recipient);
             transfer.setOperation_date(new Date());
 
-            transRepository.save(transfer);
+            transfer = transRepository.save(transfer);
+            String notificationMessage = "Your recent transaction was successful:\\n" +
+                    "🔹 TYPE: TRANSFER \\n" +
+                    "🔹 Date: " + transfer.getOperation_date() + "\\n" +
+                    "🔹 Amount: " + transfer.getAmount() + "\\n" +
+                    "🔹 TO: " + transfer.getRecipient_acc();
+
+
+            sendNotification(phone,notificationMessage);
 
         }else{
             throw new UpdatingBalanceException("the process of updating accounts balance not completed");
@@ -121,6 +143,18 @@ public class TansServiceImpl implements TransService {
         }
     }
 
+    public void sendNotification(String phone , String message) throws MessageSendingException {
+        NotifRequest request = new NotifRequest(
+                phone,
+                message
+        );
+
+        ResponseEntity<?> response = notifInterface.sendMessage(request);
+
+        if(!response.getStatusCode().is2xxSuccessful()){
+            throw new MessageSendingException("A problem was acqurred when sending message");
+        }
+    }
     @Override
     public boolean updateBalance(Long accountNb, double newBalance) {
         UpdateBalanceRequest updateBalanceRequest = new UpdateBalanceRequest(accountNb, newBalance);

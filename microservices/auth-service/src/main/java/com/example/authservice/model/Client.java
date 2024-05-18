@@ -60,6 +60,10 @@ public class Client implements UserDetails {
         return c_email;
     }
 
+    public String getFullName() {
+        return c_firstname + ' ' + c_lastname;
+    }
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

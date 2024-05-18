@@ -34,6 +34,7 @@ public class AccountServiceImpl implements AccountService {
             account.setOpenning_date(new Date());
 
             accountRepository.save(account);
+
         }else {
             throw new AccountAlreadyExistException("An account Already exist with : " + request.getHolder_email());
         }

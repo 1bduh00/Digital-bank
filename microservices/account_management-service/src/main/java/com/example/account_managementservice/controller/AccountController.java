@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/account")
+@RequestMapping("/account")
 public class AccountController {
 
     private AccountService accountService;
@@ -60,7 +60,7 @@ public class AccountController {
     public ResponseEntity<?> updateBalance(@RequestBody UpdateBalanceRequest request){
         try{
             accountService.updateBalance(request);
-            return ResponseEntity.ok("Updated");
+            return ResponseEntity.ok(request.getBalance());
         } catch (AccountNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
         }
